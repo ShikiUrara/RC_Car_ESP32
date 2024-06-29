@@ -6,21 +6,47 @@
 class Car : public EngineStrategy {
 public:
     Car() {
-        currentEngineStrategy = new L298N(26, 27, 14);
-    }
+        currentEngine = new L298N(26, 27, 14);
+    };
 
     void moveBackward(int spd) override {
-        currentStrategy->moveBackward(spd);
-    }
+        currentEngine->moveBackward(spd);
+        brakeLightON();
+    };
 
     void moveForward(int spd) override {
-        currentStrategy->moveForward(spd);
-    }
+        currentEngine->moveForward(spd);
+    };
 
     void stop() override {
-        currentStrategy->stop();
+        currentEngine->stop();
+        brakeLightOFF();
+    };
+
+    void setupLed(unsigned int pinBrakeLED, unsigned int pinHeadLED){
+      brakeLED= pinBrakeLED;
+      headLED= pinHeadLED;
+      pinMode(brakeLED,OUTPUT);
+      pinMode(headLED,OUTPUT);
+      digitalWrite(brakeLED,LOW);
+      digitalWrite(headLED,LOW);
     }
+    void brakeLightON(){
+      digitalWrite(brakeLED,HIGH);
+    }
+    void brakeLightOFF(){
+      digitalWrite(brakeLED,LOW);
+    }
+    void headLightOFF(){
+      digitalWrite(headLED,LOW);
+    }
+    void headLightON(){
+      digitalWrite(headLED,HIGH);
+    }
+    
 
 private:
-    EngineStrategy* currentEngineStrategy;
+    EngineStrategy* currentEngine;
+    unsigned int brakeLED = 19;
+    unsigned int headLED = 23;
 };

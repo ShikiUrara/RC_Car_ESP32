@@ -2,7 +2,15 @@
 // ServoTurning turning;
 #include <Bluepad32.h>
 #include "Car.h"
+
 #define servoPin 18
+#define pinBrakeLED 19
+#define pinHeadLED 23
+
+int buttonPushCounter = 0;  // counter for the number of button presses
+int buttonState = 0;        // current state of the button
+int lastButtonState = 0;    // previous state of the button
+
 ControllerPtr myControllers[BP32_MAX_GAMEPADS];
 Car myCar;
 
@@ -121,8 +129,29 @@ void processGamepad(ControllerPtr ctl) {
       int brake = map(ctl->brake(), 0, 1020, 0, 255);
       myCar.moveBackward(brake);
     }
-    else
+    else{
       myCar.stop();
+    }
+    
+    uint8_t dpadValue = ctl->dpad(); // Đọc giá trị từ dpad
+    // read the pushbutton input pin:
+    buttonState = dpadValue & 0x01;
+    Serial.println(dpadValue & 0x01);
+    // compare the buttonState to its previous state
+    if (buttonState != lastButtonState) {
+      // if the state has changed, increment the counter
+      if (buttonState == HIGH) {
+        // if the current state is HIGH then the button went from off to on:
+        buttonPushCounter++;
+      } 
+    }
+    // save the current state as the last state, for next time through the loop
+    lastButtonState = buttonState;
+    if (buttonPushCounter % 2 == 0) {
+      myCar.headLightOFF();
+    } else {
+      myCar.headLightON();
+    }
 
     // Another way to query controller data is by getting the buttons() function.
     // See how the different "dump*" functions dump the Controller info.
@@ -165,6 +194,7 @@ void setup() {
     // - Second one, which is a "virtual device", is a mouse.
     // By default, it is disabled.
     BP32.enableVirtualDevice(false);
+    myCar.setupLed(pinBrakeLED, pinHeadLED);
 }
 
 // Arduino loop function. Runs in CPU 1.
